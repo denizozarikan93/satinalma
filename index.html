@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Deneme - Purchasing</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: #2196F3; color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.2em; }
+        .header .date { font-size: 1.1em; opacity: 0.9; font-weight: normal; }
+        .info { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+        .controls { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .search-box input { width: 350px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .refresh-btn { background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 15px; font-size: 14px; }
+        .stats { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+        .stat { background: white; padding: 15px 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 120px; }
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #2196F3; }
+        .stat-label { font-size: 0.9em; color: #666; margin-top: 5px; }
+        .table-container { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+        th { background: #2196F3; color: white; padding: 12px 8px; text-align: left; cursor: pointer; position: relative; min-width: 120px; font-size: 13px; font-weight: 600; }
+        th input { width: 95%; padding: 4px; margin-top: 5px; border: 1px solid #ddd; border-radius: 3px; font-size: 11px; }
+        td { padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        tr:hover { background: #f8f9fa; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:nth-child(even):hover { background: #f0f0f0; }
+        .status-hazir { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-normal { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-pending { background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .date-cell { font-weight: 500; color: #1976d2; }
+        .loading { text-align: center; padding: 50px; color: #666; }
+        .filtered-info { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px; }
+        .column-count { color: #666; font-size: 12px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Pipeline Deneme - Purchasing</h1>
+        <div class="date">24 Ağustos 2025 - Pazar</div>
+    </div>
+    
+    <div class="info">
+        <strong>📋 Bilgi:</strong> "DURUMU" kolonunda "HAZIR" olan siparişler gösterilmemektedir.
+    </div>
+    
+    <div class="controls">
+        <div class="column-count">
+            Gösterilen sütunlar: SİPARİŞ NUMARASI, TEDARİKÇİ, TEDARİKÇİ KODU, AÇIKLAMA, MİKTAR, RENK, SİPARİŞ TARİHİ, TESLİM ALMA TARİHİ, DURUMU, Montaj Plan, Tamamlayıcı Plan
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <input type="text" id="searchInput" placeholder="🔍 Tüm tabloda ara...">
+            <button class="refresh-btn" onclick="loadData()">🔄 Verileri Yenile</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalRows">0</div>
+                <div class="stat-label">Toplam Kayıt</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="filteredRows">0</div>
+                <div class="stat-label">Gösterilen</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="hiddenRows">0</div>
+                <div class="stat-label">Gizlenen (HAZIR)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="columnCount">11</div>
+                <div class="stat-label">Görünen Sütun</div>
+            </div>
+        </div>
+        
+        <div id="filterInfo" class="filtered-info" style="display:none;"></div>
+    </div>
+    
+    <div class="table-container">
+        <div class="loading" id="loading">Python script'den pipeline verileri yükleniyor...</div>
+        <table id="dataTable" style="display:none;">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let allData = [];
+        let filteredData = [];
+        let columnFilters = {};
+        const dateColumns = ['SİPARİŞ TARİHİ', 'TESLİM ALMA TARİHİ'];
+        let hiddenRowsCount = 0;
+        
+        async function loadData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('dataTable').style.display = 'none';
+                
+                const response = await fetch('pipeline_data.json?' + Date.now());
+                const data = await response.json();
+                
+                allData = data.data;
+                hiddenRowsCount = data.filtered_rows || 0;
+                
+                // Filtreleme bilgisini göster
+                if (hiddenRowsCount > 0) {
+                    document.getElementById('filterInfo').style.display = 'block';
+                    document.getElementById('filterInfo').innerHTML = 
+                        `📊 Toplam ${data.original_rows} siparişten ${hiddenRowsCount} tanesi 'DURUMU = HAZIR' olduğu için gizlendi.`;
+                }
+                
+                resetFilters();
+                createTable();
+                updateStats();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dataTable').style.display = 'table';
+                
+            } catch (error) {
+                document.getElementById('loading').innerHTML = '❌ Pipeline verileri yüklenemedi: ' + error.message + '<br><small>pipeline_data.json dosyasının oluşturulduğundan emin olun.</small>';
+            }
+        }
+        
+        function resetFilters() {
+            columnFilters = {};
+            filteredData = [...allData];
+        }
+        
+        function createTable() {
+            const thead = document.getElementById('tableHead');
+            const tbody = document.getElementById('tableBody');
+            
+            if (allData.length === 0) return;
+            
+            // Header - sadece mevcut kolonları göster
+            const columns = Object.keys(allData[0]);
+            thead.innerHTML = '<tr>' + columns.map(col => `
+                <th onclick="sortTable('${col}')">
+                    ${col}
+                    <br>
+                    <input type="text" placeholder="${col} filtrele..." 
+                           onkeyup="filterByColumn('${col}', this.value)" 
+                           onclick="event.stopPropagation()">
+                </th>
+            `).join('') + '</tr>';
+            
+            renderTableBody(columns);
+        }
+        
+        function renderTableBody(columns) {
+            const tbody = document.getElementById('tableBody');
+            
+            tbody.innerHTML = filteredData.map(row => 
+                '<tr>' + columns.map(col => {
+                    let value = row[col] || '';
+                    let cellClass = '';
+                    
+                    // Tarih formatı kontrolü
+                    if (dateColumns.includes(col) && value && value !== '' && value !== 'NaT' && value !== 'nan') {
+                        // Eğer tarih formatında ise (dd.mm.yyyy)
+                        if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
+                            cellClass = 'date-cell';
+                        }
+                    }
+                    
+                    // DURUMU kolonun özel durumları
+                    if (col === 'DURUMU' && value && value !== '') {
+                        const upperValue = value.toUpperCase();
+                        if (upperValue === 'HAZIR') {
+                            value = `<span class="status-hazir">${value}</span>`;
+                        } else if (upperValue.includes('TAMAMLAND') || upperValue.includes('BİTTİ')) {
+                            value = `<span class="status-normal">${value}</span>`;
+                        } else if (upperValue.includes('BEKL') || upperValue.includes('DEVAM')) {
+                            value = `<span class="status-pending">${value}</span>`;
+                        } else {
+                            value = `<span class="status-pending">${value}</span>`;
+                        }
+                    }
+                    
+                    return `<td class="${cellClass}" title="${String(row[col] || '')}">${value}</td>`;
+                }).join('') + '</tr>'
+            ).join('');
+        }
+        
+        function filterByColumn(column, value) {
+            if (value.trim() === '') {
+                delete columnFilters[column];
+            } else {
+                columnFilters[column] = value.toLowerCase();
+            }
+            applyAllFilters();
+        }
+        
+        function filterData() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredData = allData.filter(row => {
+                // Genel arama
+                const matchesSearch = search === '' || Object.values(row).some(val => 
+                    String(val).toLowerCase().includes(search)
+                );
+                
+                // Kolon filtreleri
+                const matchesColumnFilters = Object.keys(columnFilters).every(col => {
+                    const filterValue = columnFilters[col];
+                    const cellValue = String(row[col] || '').toLowerCase();
+                    return cellValue.includes(filterValue);
+                });
+                
+                return matchesSearch && matchesColumnFilters;
+            });
+            
+            const columns = Object.keys(allData[0] || {});
+            renderTableBody(columns);
+            updateStats();
+        }
+        
+        function applyAllFilters() {
+            filterData();
+        }
+        
+        function sortTable(column) {
+            filteredData.sort((a, b) => {
+                let aVal = String(a[column] || '');
+                let bVal = String(b[column] || '');
+                
+                // Tarih kolonları için özel sıralama
+                if (dateColumns.includes(column)) {
+                    const aDate = parseDate(aVal);
+                    const bDate = parseDate(bVal);
+                    
+                    if (aDate && bDate) {
+                        return aDate - bDate;
+                    } else if (aDate) {
+                        return -1;
+                    } else if (bDate) {
+                        return 1;
+                    }
+                }
+                
+                // Sayı kontrolü
+                const aNum = parseFloat(aVal);
+                const bNum = parseFloat(bVal);
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return aNum - bNum;
+                }
+                
+                return aVal.toLowerCase().localeCompare(bVal.toLowerCase(), 'tr');
+            });
+            
+            const columns = Object.keys(allData[0] || {});
+            renderTableBody(columns);
+        }
+        
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr === '' || dateStr === 'NaT' || dateStr === 'nan') return null;
+            
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const year = parseInt(parts[2]);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    return new Date(year, month, day);
+                }
+            }
+            
+            return null;
+        }
+        
+        function updateStats() {
+            document.getElementById('totalRows').textContent = allData.length;
+            document.getElementById('filteredRows').textContent = filteredData.length;
+            document.getElementById('hiddenRows').textContent = hiddenRowsCount;
+            document.getElementById('columnCount').textContent = Object.keys(allData[0] || {}).length;
+        }
+        
+        // Sayfa yüklendiğinde ve her 15 dakikada bir güncelle
+        document.addEventListener('DOMContentLoaded', loadData);
+        setInterval(loadData, 900000); // 15 dakika = 900000 ms
+    </script>
+</body>
+</html>
