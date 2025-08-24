@@ -3748,7 +3748,7 @@
   "total_rows": 287,
   "original_rows": 16020,
   "filtered_rows": 15733,
-  "last_updated": "2025-08-24T22:18:36.622267",
+  "last_updated": "2025-08-24T22:21:49.172327",
   "missing_columns": [],
   "filter_info": "'DURUMU' = 'HAZIR' olan satırlar filtrelendi"
 }
