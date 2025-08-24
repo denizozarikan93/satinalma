@@ -275,7 +275,132 @@
             document.getElementById('columnCount').textContent = Object.keys(allData[0] || {}).length;
         }
         
-        // Sayfa yüklendiğinde ve her 15 dakikada bir güncelle
+        // Excel Export Fonksiyonu
+        function exportToExcel() {
+            try {
+                if (filteredData.length === 0) {
+                    showExportMessage('❌ Export edilecek veri bulunamadı!', false);
+                    return;
+                }
+
+                // Mevcut filtrelenmiş verileri al
+                const dataToExport = filteredData.map(row => {
+                    const cleanRow = {};
+                    Object.keys(row).forEach(key => {
+                        // HTML etiketlerini temizle
+                        let value = row[key];
+                        if (typeof value === 'string') {
+                            value = value.replace(/<[^>]*>/g, '');
+                        }
+                        cleanRow[key] = value || '';
+                    });
+                    return cleanRow;
+                });
+
+                // Excel workbook oluştur
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+                // Kolon genişliklerini ayarla
+                const colWidths = [];
+                Object.keys(dataToExport[0] || {}).forEach(key => {
+                    const maxLength = Math.max(
+                        key.length,
+                        ...dataToExport.slice(0, 100).map(row => String(row[key] || '').length)
+                    );
+                    colWidths.push({ width: Math.min(Math.max(maxLength + 2, 10), 50) });
+                });
+                ws['!cols'] = colWidths;
+
+                // Worksheet'i workbook'a ekle
+                XLSX.utils.book_append_sheet(wb, ws, 'Pipeline Data');
+
+                // Dosya adını oluştur
+                const today = new Date();
+                const dateStr = today.toISOString().split('T')[0];
+                const filename = `Pipeline_Deneme_${dateStr}_${filteredData.length}_kayit.xlsx`;
+
+                // Excel dosyasını indir
+                XLSX.writeFile(wb, filename);
+
+                showExportMessage(`✅ Excel dosyası indirildi: ${filename} (${filteredData.length} kayıt)`, true);
+
+            } catch (error) {
+                console.error('Excel export hatası:', error);
+                showExportMessage('❌ Excel export sırasında hata oluştu: ' + error.message, false);
+            }
+        }
+
+        // CSV Export Fonksiyonu  
+        function exportToCSV() {
+            try {
+                if (filteredData.length === 0) {
+                    showExportMessage('❌ Export edilecek veri bulunamadı!', false);
+                    return;
+                }
+
+                // CSV içeriği oluştur
+                const headers = Object.keys(filteredData[0]);
+                const csvContent = [
+                    headers.join(','),
+                    ...filteredData.map(row => 
+                        headers.map(header => {
+                            let value = row[header] || '';
+                            // HTML etiketlerini temizle
+                            if (typeof value === 'string') {
+                                value = value.replace(/<[^>]*>/g, '');
+                            }
+                            // Virgül içeren değerleri tırnak içine al
+                            if (String(value).includes(',')) {
+                                return `"${String(value).replace(/"/g, '""')}"`;
+                            }
+                            return String(value);
+                        }).join(',')
+                    )
+                ].join('\n');
+
+                // CSV dosyasını indir
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                
+                const today = new Date();
+                const dateStr = today.toISOString().split('T')[0];
+                const filename = `Pipeline_Deneme_${dateStr}_${filteredData.length}_kayit.csv`;
+
+                link.setAttribute('href', URL.createObjectURL(blob));
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showExportMessage(`✅ CSV dosyası indirildi: ${filename} (${filteredData.length} kayıt)`, true);
+
+            } catch (error) {
+                console.error('CSV export hatası:', error);
+                showExportMessage('❌ CSV export sırasında hata oluştu: ' + error.message, false);
+            }
+        }
+
+        // Export mesajı göster
+        function showExportMessage(message, isSuccess) {
+            const exportInfo = document.getElementById('exportInfo');
+            exportInfo.style.display = 'block';
+            exportInfo.textContent = message;
+            
+            if (isSuccess) {
+                exportInfo.style.background = '#e8f5e8';
+                exportInfo.style.color = '#2e7d32';
+            } else {
+                exportInfo.style.background = '#ffebee';
+                exportInfo.style.color = '#c62828';
+            }
+
+            // 5 saniye sonra mesajı gizle
+            setTimeout(() => {
+                exportInfo.style.display = 'none';
+            }, 5000);
+        }
         document.addEventListener('DOMContentLoaded', loadData);
         setInterval(loadData, 900000); // 15 dakika = 900000 ms
     </script>
