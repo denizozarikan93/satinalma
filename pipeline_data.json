@@ -8623,7 +8623,7 @@
   "total_rows": 662,
   "original_rows": 16440,
   "filtered_rows": 15778,
-  "last_updated": "2025-08-26T08:43:31.648033",
+  "last_updated": "2025-08-28T10:03:38.275127",
   "missing_columns": [],
   "filter_info": "'DURUMU' = 'HAZIR' olan satırlar filtrelendi"
 }
