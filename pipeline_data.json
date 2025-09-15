@@ -794,32 +794,6 @@
       "Tamamlayıcı Plan": ""
     },
     {
-      "SİPARİŞ NUMARASI": "142587",
-      "TEDARİKÇİ": "SOLE_ALUMINYUM",
-      "TEDARİKÇİ KODU": "ZD3F_03_FRC_SL8811_9005M_MS_450x721_CA02M_L_ALT",
-      "AÇIKLAMA": "ZD3F_20*20 DAR PROFIL_KULPSUZ_03_FRC_SL8811_9005M_MS MAT SIYAH_450x721_CA02M_L_ALT",
-      "MİKTAR": "1.0",
-      "RENK": "",
-      "SİPARİŞ TARİHİ": "25.08.2025",
-      "TESLİM ALMA TARİHİ": "",
-      "DURUMU": "",
-      "Montaj Plan": "8-12 Eylül 2025",
-      "Tamamlayıcı Plan": ""
-    },
-    {
-      "SİPARİŞ NUMARASI": "142587",
-      "TEDARİKÇİ": "SOLE_ALUMINYUM",
-      "TEDARİKÇİ KODU": "ZD3F_03_FRC_SL8811_9005M_MS_450x1365_CU03M_L_UST",
-      "AÇIKLAMA": "ZD3F_20*20 DAR PROFIL_KULPSUZ_03_FRC_SL8811_9005M_MS MAT SIYAH_450x1365_CU03M_L_UST",
-      "MİKTAR": "1.0",
-      "RENK": "",
-      "SİPARİŞ TARİHİ": "25.08.2025",
-      "TESLİM ALMA TARİHİ": "",
-      "DURUMU": "",
-      "Montaj Plan": "8-12 Eylül 2025",
-      "Tamamlayıcı Plan": ""
-    },
-    {
       "SİPARİŞ NUMARASI": "142565",
       "TEDARİKÇİ": "SOLE_ALUMINYUM",
       "TEDARİKÇİ KODU": "ZY3F_03_FRC_SL8176_9005M_MS_442x2089_CB04M_R",
@@ -1041,10 +1015,10 @@
     "Montaj Plan",
     "Tamamlayıcı Plan"
   ],
-  "total_rows": 79,
+  "total_rows": 77,
   "original_rows": 16545,
-  "filtered_rows": 16466,
-  "last_updated": "2025-09-15T08:12:43.130228",
+  "filtered_rows": 16468,
+  "last_updated": "2025-09-15T09:01:59.366699",
   "missing_columns": [],
   "filter_info": "'DURUMU' = 'HAZIR' olan satırlar filtrelendi"
 }
