@@ -4125,7 +4125,7 @@
   "total_rows": 316,
   "original_rows": 18737,
   "filtered_rows": 18421,
-  "last_updated": "2025-12-15T09:05:10.010725",
+  "last_updated": "2025-12-16T15:39:41.324927",
   "missing_columns": [],
   "filter_info": "'DURUMU' = 'HAZIR' olan satırlar filtrelendi"
 }
