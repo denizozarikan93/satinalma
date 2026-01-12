@@ -6777,7 +6777,7 @@
   "total_rows": 520,
   "original_rows": 19293,
   "filtered_rows": 18773,
-  "last_updated": "2026-01-10T15:34:17.939674",
+  "last_updated": "2026-01-12T09:53:15.579957",
   "missing_columns": [],
   "filter_info": "'DURUMU' = 'HAZIR' olan satırlar filtrelendi"
 }
